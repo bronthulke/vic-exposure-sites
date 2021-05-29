@@ -10,9 +10,9 @@ using Newtonsoft.Json;
 
 namespace AWD.StoreGeocodeData
 {
-    public static class HttpTrigger1
+    public static class StoreGeocodeData
     {
-        [FunctionName("StoreGeocodeDetails")]
+        [FunctionName("StoreGeocodeData")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
