@@ -34,7 +34,7 @@ export default {
                 position: results[0].geometry.location,
               });
 
-              await (await fetch(`https://vicexposuresites.azurewebsites.net/api/StoreGeocodeData?code=Pv31aIkVYbSnWGHpkfvdK/pmHdvN99AmmulFbwi930sNRv8AKgZumQ==&address=${address}&lat=${results[0].geometry.location.lat}&lng=${results[0].geometry.location.lng}`)).json();
+              // await (await fetch(`https://vicexposuresites.azurewebsites.net/api/StoreGeocodeData?code=Pv31aIkVYbSnWGHpkfvdK/pmHdvN99AmmulFbwi930sNRv8AKgZumQ==&address=${address}&lat=${results[0].geometry.location.lat}&lng=${results[0].geometry.location.lng}`)).json();
 
             } else {
               console.log("Failed geocoding for the following reason: " + status);
