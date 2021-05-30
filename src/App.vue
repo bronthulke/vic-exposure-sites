@@ -8,6 +8,7 @@ export default {
   data() {
     return {
       map: null,
+      cacheInitialised: false,
       mapCenter: { lat: -37.8136, lng: 144.9631 },
       infoWindow: undefined,
       oms: [],
@@ -50,15 +51,18 @@ export default {
         .then(data => {
           // console.log(`Stored data - ${data.body}`);
           this.localCache = data.body;
+          this.cacheInitialised = true;
         });
     },
-    callStoreGeocodeDataAPI(address, geometryLocation) {
-        const url = `/api/storegeocodedata/?address=${address}&lat=${geometryLocation.lat}&lng=${geometryLocation.lng}`;
-        // const url = `http://192.168.1.178:4280/api/storegeocodedata/?address=${address}&lat=${geometryLocation.lat}&lng=${geometryLocation.lng}`;
+    callStoreGeocodeDataAPI(address, geometryLocation, title, adviceTitle) {
+        const url = `/api/storegeocodedata/`;
+        // const url = `http://192.168.1.178:4280/api/storegeocodedata/`;
 
         const data = {
           "address": address,
-          "location": geometryLocation
+          "location": geometryLocation,
+          "title": title,
+          "advice_title": adviceTitle
         };
 
         const options = {
@@ -91,11 +95,11 @@ export default {
 
       let iconURL = '';
       if(adviceTitle.startsWith('Tier 2'))
-        iconURL = 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png';
+        iconURL = 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png';
       else if(adviceTitle.startsWith('Tier 3'))
-        iconURL = 'http://maps.google.com/mapfiles/ms/icons/green-dot.png';
+        iconURL = 'https://maps.google.com/mapfiles/ms/icons/green-dot.png';
       else // Tier 1 and anything else that can't be classified
-        iconURL = 'http://maps.google.com/mapfiles/ms/icons/red-dot.png';
+        iconURL = 'https://maps.google.com/mapfiles/ms/icons/red-dot.png';
 
       var marker = new window.google.maps.Marker({
         // map: this.map, // using Spiderify
@@ -131,13 +135,13 @@ export default {
     },
     lookupGeocodeWithGoogle: rateLimit(10, 1000, function(address, title, adviceTitle) { 
 
-      // console.log(`Geocoding ${address}`);
+      console.log(`Geocoding ${address}`);
       this.geocoder.geocode({ address: address }, (results, status) => {
         if (status === "OK") {
 
           this.addMarkerAndInfoWindow(address, title, adviceTitle, results[0].geometry.location);
 
-          this.callStoreGeocodeDataAPI(address, results[0].geometry.location)
+          this.callStoreGeocodeDataAPI(address, results[0].geometry.location, title, adviceTitle)
             .then(newData => {
               this.localCache.push(newData);
             })
@@ -164,7 +168,7 @@ export default {
 
         var geocodeData = this.getCachedGeocode(address);
         if(geocodeData) {
-          // console.log(`Found local cache data for ${address}: ${JSON.stringify(geocodeData)}`)
+          console.log(`Found local cache data for ${address}: ${JSON.stringify(geocodeData)}`)
           
           var latLng = { lat: Number(geocodeData.location.lat), lng: Number(geocodeData.location.lng)};
           
@@ -217,12 +221,12 @@ export default {
 </script>
 
 <style scoped>
-.legend img {
-  margin-bottom: 5px;
-}
-#map {
-  height: 700px;
-}
+  .legend img {
+    margin-bottom: 5px;
+  }
+  #map {
+    height: 700px;
+  }
 </style>
 
 <template>
@@ -230,15 +234,15 @@ export default {
     <h2>Victorian COVID-19 Public Exposure Sites</h2>
     <div class="row">
       <div class="col-md-8">
-        <p><button class="btn btn-primary" @click="doLoadData">Load data</button></p>
+        <p><button class="btn btn-primary" :disabled="!cacheInitialised" @click="doLoadData">Load data <span v-show="!cacheInitialised">(please wait)</span></button></p>
 
         <p>For full details of COVID-19 exposure sites, go to <a href="https://www.coronavirus.vic.gov.au/exposure-sites">https://www.coronavirus.vic.gov.au/exposure-sites</a></p>
       </div>
       <div class="col-md-4">
         <p class="legend"><strong>Legend:</strong><br/>
-          <img src="http://maps.google.com/mapfiles/ms/icons/red-dot.png" /> Tier 1<br/>
-          <img src="http://maps.google.com/mapfiles/ms/icons/blue-dot.png" /> Tier 2<br/>
-          <img src="http://maps.google.com/mapfiles/ms/icons/green-dot.png" /> Tier 3
+          <img src="https://maps.google.com/mapfiles/ms/icons/red-dot.png" /> Tier 1<br/>
+          <img src="https://maps.google.com/mapfiles/ms/icons/blue-dot.png" /> Tier 2<br/>
+          <img src="https://maps.google.com/mapfiles/ms/icons/green-dot.png" /> Tier 3
         </p>
       </div>
     </div>
