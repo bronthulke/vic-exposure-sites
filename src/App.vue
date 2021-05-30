@@ -187,7 +187,7 @@ export default {
 
     <div id="map"></div>
     <div id="disclaimer">
-      <p>Created by Bron Thulke - code available at <a href="https://github.com/bronthulke/radius-checker">https://github.com/bronthulke/vic-exposure-sites</a></p>
+      <p>Created by Bron Thulke - code available on <a href="https://github.com/bronthulke/vic-exposure-sites">Github</a></p>
       <p><strong>DISCLAIMER:</strong> The data presented in this website is not guaranteed to be accurate, and we take no responsibility for any decisions or outcomes that come about as a result of the use of this website.
       <p>This project is a "passion project" by me, in order to allow me to visually see any nearby COVID-19 exposure sites in Melbourne.</p>
       <p>The data may be out of date, and may become out-of-date as the government updates data on a regular basis.</p>
