@@ -7,29 +7,67 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Linq;
+using System.Collections.Generic;
+using AWD.GetAllGeocodeData;
 
 namespace AWD.StoreGeocodeData
 {
+    class RequestData{
+        [JsonProperty("address")]
+        public string Address { get; set; }
+
+        [JsonProperty("location")]
+        public object Location { get; set; }
+    }
+
     public static class StoreGeocodeData
     {
         [FunctionName("StoreGeocodeData")]
-        public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
+        public static IActionResult Run(
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
+            [CosmosDB(
+                databaseName: "geocodeDatabase",
+                collectionName: "geocodeCollection",
+                ConnectionStringSetting = "CosmosDBConnection",
+                SqlQuery = "SELECT * FROM c")] IEnumerable<GeocodeDataItem> geocodeData,
+            [CosmosDB(
+                databaseName: "geocodeDatabase",
+                collectionName: "geocodeCollection",
+                ConnectionStringSetting = "CosmosDBConnection", Id = "address", CreateIfNotExists = true)] out object geocodeDocument,
             ILogger log)
         {
-            log.LogInformation("C# HTTP trigger function processed a request.");
 
-            string name = req.Query["name"];
+            string requestBody = new StreamReader(req.Body).ReadToEnd();
+            RequestData data = JsonConvert.DeserializeObject<RequestData>(requestBody);
 
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
-            name = name ?? data?.name;
+            string address = data?.Address;
+            object location = data?.Location;
 
-            string responseMessage = string.IsNullOrEmpty(name)
-                ? "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
-                : $"Hello, {name}. This HTTP triggered function executed successfully.";
+            // Ensure we don't try to add duplicate addresses (which would throw an exception, since "/address" is a unique key)
+            if(geocodeData.Any(d => d.Address == address))
+            {
+                Console.WriteLine("Not adding existing item " + address);
+                geocodeDocument = null;
+                return (ActionResult)new OkResult();
+            }            
 
-            return new OkObjectResult(responseMessage);
+            // We need both name and task parameters.
+            if (!string.IsNullOrEmpty(address) && location != null)
+            {
+                geocodeDocument = new
+                {
+                    address,
+                    location,
+                }; 
+
+                return (ActionResult)new OkObjectResult(geocodeDocument); // returning the doc JSON
+            }
+            else
+            {
+                geocodeDocument = null;
+                return (ActionResult)new BadRequestResult();
+            }
         }
     }
 }

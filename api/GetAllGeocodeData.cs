@@ -17,6 +17,13 @@ namespace AWD.GetAllGeocodeData
         [JsonProperty("address")]
         public string Address { get; set; }
 
+        [JsonProperty("location")]
+        public GeocodeDataLocationItem location { get; set; }
+
+    }
+
+    public class GeocodeDataLocationItem
+    {
         [JsonProperty("lat")]
         public string Lat { get; set; }
 
@@ -30,7 +37,7 @@ namespace AWD.GetAllGeocodeData
         
         [FunctionName("GetAllGeocodeData")]
         public static IActionResult Run(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req,
             [CosmosDB(
                 databaseName: "geocodeDatabase",
                 collectionName: "geocodeCollection",
