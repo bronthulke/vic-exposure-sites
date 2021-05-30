@@ -34,6 +34,21 @@ npm run servelocal
 
 For more info about using this, see [https://docs.microsoft.com/en-us/azure/static-web-apps/add-api?tabs=vue](https://docs.microsoft.com/en-us/azure/static-web-apps/add-api?tabs=vue).
 
+**Local debugging**
+
+I found that when runnign with the Static Web Apps CLI, it was not giving me the abiltity to properly debug my code.  So the workaround I used was to run the Azure Functions locally using the following command:
+
+```base
+swa start . --api api 
+```
+
+and then running the Vue app using this command:
+
+```base
+npm run serve
+```
+
+And just ensure that the API URLs are pointing at the site fired up by `swa` (e.g. `http://192.168.1.178:4280/api/...`)
 
 ### Lints and fixes files
 
