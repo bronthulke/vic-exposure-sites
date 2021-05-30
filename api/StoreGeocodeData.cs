@@ -17,6 +17,12 @@ namespace AWD.StoreGeocodeData
         [JsonProperty("address")]
         public string Address { get; set; }
 
+        [JsonProperty("title")]
+        public string Title { get; set;}
+
+        [JsonProperty("advice_title")]
+        public string AdviceTitle { get; set;}
+
         [JsonProperty("location")]
         public object Location { get; set; }
     }
@@ -42,6 +48,8 @@ namespace AWD.StoreGeocodeData
             RequestData data = JsonConvert.DeserializeObject<RequestData>(requestBody);
 
             string address = data?.Address;
+            string title = data?.Title;
+            string adviceTitle = data?.AdviceTitle;
             object location = data?.Location;
 
             // Ensure we don't try to add duplicate addresses (which would throw an exception, since "/address" is a unique key)
@@ -58,6 +66,8 @@ namespace AWD.StoreGeocodeData
                 geocodeDocument = new
                 {
                     address,
+                    title,
+                    adviceTitle,
                     location,
                 }; 
 

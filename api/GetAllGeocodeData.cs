@@ -17,6 +17,12 @@ namespace AWD.GetAllGeocodeData
         [JsonProperty("address")]
         public string Address { get; set; }
 
+        [JsonProperty("title")]
+        public string Title { get; set;}
+
+        [JsonProperty("advice_title")]
+        public string AdviceTitle { get; set;}
+
         [JsonProperty("location")]
         public GeocodeDataLocationItem location { get; set; }
 

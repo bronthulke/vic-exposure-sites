@@ -9,6 +9,8 @@ export default {
     return {
       map: null,
       mapCenter: { lat: -37.8136, lng: 144.9631 },
+      infoWindow: undefined,
+      oms: [],
       geocoder: null,
       addresses: [],
       localCache: [],
@@ -21,6 +23,13 @@ export default {
         center: this.mapCenter,
         zoom: 8,
       })
+
+      this.infoWindow = new window.google.maps.InfoWindow();
+
+      this.oms = new window.OverlappingMarkerSpiderfier(this.map, {
+        keepSpiderfied: true,
+      });
+
     },
     callGetAllGeocodeData() {
       const url = `/api/getallgeocodedata/`;
@@ -78,17 +87,55 @@ export default {
         
         return localCacheData;
     },
-    lookupGeocodeWithGoogle: rateLimit(10, 1000, function(address) { 
+    addMarkerAndInfoWindow(address, title, adviceTitle, latLng) {
+
+      let iconURL = '';
+      if(adviceTitle.startsWith('Tier 2'))
+        iconURL = 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png';
+      else if(adviceTitle.startsWith('Tier 3'))
+        iconURL = 'http://maps.google.com/mapfiles/ms/icons/green-dot.png';
+      else // Tier 1 and anything else that can't be classified
+        iconURL = 'http://maps.google.com/mapfiles/ms/icons/red-dot.png';
+
+      var marker = new window.google.maps.Marker({
+        // map: this.map, // using Spiderify
+        position: latLng,
+        title: title,
+        icon: iconURL
+      });
+
+      // this.infoWindow = new window.google.maps.InfoWindow({
+      //   content: `<p><strong>${title}</strong></p>` +
+      //     `<p>${adviceTitle}</></p>` +
+      //     `<p>${address}</></p>`
+      // });
+
+      // marker.addListener("click", () => {
+      //   this.infoWindow.close();
+      //   this.infoWindow.open(this.map, marker);
+      // });
+
+      let iw = this.infoWindow;
+      window.google.maps.event.addListener(marker, 'spider_click', () => {
+        if(iw) iw.close();
+
+        iw.setContent(`<p><strong>${title}</strong></p>` +
+          `<p>${adviceTitle}</></p>` +
+          `<p>${address}</></p>`);
+        iw.open(this.map, marker);
+      });
+      this.oms.addMarker(marker);
+
+
+
+    },
+    lookupGeocodeWithGoogle: rateLimit(10, 1000, function(address, title, adviceTitle) { 
 
       // console.log(`Geocoding ${address}`);
       this.geocoder.geocode({ address: address }, (results, status) => {
         if (status === "OK") {
-          // console.log(`Adding marker for ${address}`);
-          // resultsMap.setCenter(results[0].geometry.location);
-          new window.google.maps.Marker({
-            map: this.map,
-            position: results[0].geometry.location,
-          });
+
+          this.addMarkerAndInfoWindow(address, title, adviceTitle, results[0].geometry.location);
 
           this.callStoreGeocodeDataAPI(address, results[0].geometry.location)
             .then(newData => {
@@ -105,7 +152,7 @@ export default {
         }
       });
     }),
-    geocodeAddress(address) { 
+    geocodeAddress(address, title, adviceTitle) { 
       // NOTE: I am NOT putting this initial geocoding stuff into a separate Azure Function for now,
       // so the first time this loads with an empty database, it will HAVE to run slowly
       // so as not to run into Google API rate limits.  So I'll be sure to run this myself first.
@@ -121,15 +168,12 @@ export default {
           
           var latLng = { lat: Number(geocodeData.location.lat), lng: Number(geocodeData.location.lng)};
           
-          new window.google.maps.Marker({
-            map: this.map,
-            position: latLng,
-          });
+          this.addMarkerAndInfoWindow(address, title, adviceTitle, latLng);
 
           this.addresses.push(address);   // record as having been processed
         }
         else {
-          this.lookupGeocodeWithGoogle(address);
+          this.lookupGeocodeWithGoogle(address, title, adviceTitle);
         }
       }
       else {
@@ -151,7 +195,7 @@ export default {
 
           records.forEach((record) => {
             const address = `${record.Site_streetaddress}, ${record.Suburb}, ${record.Site_state}, AU`;
-            self.geocodeAddress(address);
+            self.geocodeAddress(address, record.Site_title, record.Advice_title);
           });
 
           if(data.result.records.length > 0) {
@@ -173,6 +217,9 @@ export default {
 </script>
 
 <style scoped>
+.legend img {
+  margin-bottom: 5px;
+}
 #map {
   height: 700px;
 }
@@ -181,18 +228,30 @@ export default {
 <template>
   <div class="container">
     <h2>Victorian COVID-19 Public Exposure Sites</h2>
-    <p><button class="btn btn-primary" @click="doLoadData">Load data</button></p>
+    <div class="row">
+      <div class="col-md-8">
+        <p><button class="btn btn-primary" @click="doLoadData">Load data</button></p>
 
-    <p><strong>Coming soon:</strong> classification of Tier 1/Tier 2/Tier 3, plus details of the exposure site (rather than just a marker)</p>
-
-    <p>For full details of COVID-19 exposure sites, go to <a href="https://www.coronavirus.vic.gov.au/exposure-sites">https://www.coronavirus.vic.gov.au/exposure-sites</a>
-
+        <p>For full details of COVID-19 exposure sites, go to <a href="https://www.coronavirus.vic.gov.au/exposure-sites">https://www.coronavirus.vic.gov.au/exposure-sites</a></p>
+      </div>
+      <div class="col-md-4">
+        <p class="legend"><strong>Legend:</strong><br/>
+          <img src="http://maps.google.com/mapfiles/ms/icons/red-dot.png" /> Tier 1<br/>
+          <img src="http://maps.google.com/mapfiles/ms/icons/blue-dot.png" /> Tier 2<br/>
+          <img src="http://maps.google.com/mapfiles/ms/icons/green-dot.png" /> Tier 3
+        </p>
+      </div>
+    </div>
     <div id="map"></div>
-    <div id="disclaimer">
-      <p>Created by Bron Thulke - code available on <a href="https://github.com/bronthulke/vic-exposure-sites">Github</a></p>
-      <p><strong>DISCLAIMER:</strong> The data presented in this website is not guaranteed to be accurate, and we take no responsibility for any decisions or outcomes that come about as a result of the use of this website.
-      <p>This project is a "passion project" by me, in order to allow me to visually see any nearby COVID-19 exposure sites in Melbourne.</p>
-      <p>The data may be out of date, and may become out-of-date as the government updates data on a regular basis.</p>
+    <div class="row">
+      <div class="col-xs-12">
+        <div id="disclaimer">
+          <p>Created by Bron Thulke - code available on <a href="https://github.com/bronthulke/vic-exposure-sites">Github</a></p>
+          <p><strong>DISCLAIMER:</strong> The data presented in this website is not guaranteed to be accurate, and we take no responsibility for any decisions or outcomes that come about as a result of the use of this website.
+          <p>This project is a "passion project" by me, in order to allow me to visually see any nearby COVID-19 exposure sites in Melbourne.</p>
+          <p>The data may be out of date, and may become out-of-date as the government updates data on a regular basis.</p>
+        </div>
+      </div>
     </div>
   </div>
 </template>
