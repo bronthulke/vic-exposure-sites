@@ -59,3 +59,9 @@ npm run lint
 ### Customize configuration
 
 See [Configuration Reference](https://cli.vuejs.org/config/).
+
+## Coming Soon
+- classification of Tier 1/Tier 2/Tier 3
+- details of the exposure site (rather than just a marker)
+- removing old/expired sites drop off the map (currently it just adds any new sites, it never deletes ones that have been removed)
+- move to server-side Google API for geocoding (important for initial data load, less important now the base set has been loaded)
