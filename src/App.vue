@@ -178,10 +178,12 @@ export default {
 
 <template>
   <div class="container">
-    <h2>Vic Exposure Sites</h2>
-    <button class="btn btn-primary" @click="doLoadData">Load data</button>
+    <h2>Victorian COVID-19 Public Exposure Sites</h2>
+    <p><button class="btn btn-primary" @click="doLoadData">Load data</button></p>
 
-    <p><strong>Coming soon:</strong> classification of Tier 1/Tier 2/Tier 3</p>
+    <p><strong>Coming soon:</strong> classification of Tier 1/Tier 2/Tier 3, plus details of the exposure site (rather than just a marker)</p>
+
+    <p>For full details of COVID-19 exposure sites, go to <a href="https://www.coronavirus.vic.gov.au/exposure-sites">https://www.coronavirus.vic.gov.au/exposure-sites</a>
 
     <div id="map"></div>
     <div id="disclaimer">
