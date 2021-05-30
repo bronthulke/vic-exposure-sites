@@ -23,7 +23,8 @@ export default {
       })
     },
     callGetAllGeocodeData() {
-      const url = `http://192.168.1.178:4280/api/getallgeocodedata/`;
+      const url = `/api/getallgeocodedata/`;
+      // const url = `http://192.168.1.178:4280/api/getallgeocodedata/`;
 
       const options = {
         method: "GET",
@@ -43,7 +44,8 @@ export default {
         });
     },
     callStoreGeocodeDataAPI(address, geometryLocation) {
-        const url = `http://192.168.1.178:4280/api/storegeocodedata/?address=${address}&lat=${geometryLocation.lat}&lng=${geometryLocation.lng}`;
+        const url = `/api/storegeocodedata/?address=${address}&lat=${geometryLocation.lat}&lng=${geometryLocation.lng}`;
+        // const url = `http://192.168.1.178:4280/api/storegeocodedata/?address=${address}&lat=${geometryLocation.lat}&lng=${geometryLocation.lng}`;
 
         const data = {
           "address": address,
