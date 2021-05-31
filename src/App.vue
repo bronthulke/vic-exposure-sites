@@ -34,7 +34,7 @@ export default {
     },
     callGetAllGeocodeData() {
       const url = `/api/getallgeocodedata/`;
-      // const url = `http://192.168.1.178:4280/api/getallgeocodedata/`;
+      // const url = `http://192.168.1.189:4280/api/getallgeocodedata/`;
 
       const options = {
         method: "GET",
@@ -56,7 +56,7 @@ export default {
     },
     callStoreGeocodeDataAPI(address, geometryLocation, title, adviceTitle) {
         const url = `/api/storegeocodedata/`;
-        // const url = `http://192.168.1.178:4280/api/storegeocodedata/`;
+        // const url = `http://192.168.1.189:4280/api/storegeocodedata/`;
 
         const data = {
           "address": address,
@@ -129,9 +129,6 @@ export default {
         iw.open(this.map, marker);
       });
       this.oms.addMarker(marker);
-
-
-
     },
     lookupGeocodeWithGoogle: rateLimit(10, 1000, function(address, title, adviceTitle) { 
 
@@ -168,7 +165,7 @@ export default {
 
         var geocodeData = this.getCachedGeocode(address);
         if(geocodeData) {
-          console.log(`Found local cache data for ${address}: ${JSON.stringify(geocodeData)}`)
+          // console.log(`Found local cache data for ${address}: ${JSON.stringify(geocodeData)}`)
           
           var latLng = { lat: Number(geocodeData.location.lat), lng: Number(geocodeData.location.lng)};
           
@@ -185,6 +182,11 @@ export default {
       }
     },
     doLoadData() {
+      if(this.oms)
+        this.oms.removeAllMarkers();
+
+      this.addresses = [];
+
       this.loadData("/api/3/action/datastore_search?resource_id=afb52611-6061-4a2b-9110-74c920bede77");
     },
     loadData(url) {
@@ -210,51 +212,175 @@ export default {
     }
   },
   mounted () {
-    
-    this.callGetAllGeocodeData();
 
     this.geocoder = new window.google.maps.Geocoder();
-
     this.initMap();
+
+    this.callGetAllGeocodeData()
+      .then(() => {
+        this.doLoadData()
+      })
   },
 };
 </script>
 
 <style scoped>
+
+  h1 {
+    margin: 30px 0 20px;
+  }
+
   .legend img {
     margin-bottom: 5px;
   }
+
+  .map-row {
+    margin-bottom: 20px;
+  }
+
   #map {
     height: 700px;
+  }
+
+  .spinner{
+    position:absolute;
+    top: 50%;
+    left: 0;
+    /* background: #2a2a2a55; */
+    width: 100%;
+    display:block;
+    text-align:center;
+    height: 300px;
+    color: #FFF;
+    transform: translateY(-50%);
+    z-index: 1000;
+    visibility: hidden;
+  }
+
+  .overlay{
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    visibility: hidden;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+  }
+
+  .loader,
+  .loader:before,
+  .loader:after {
+    border-radius: 50%;
+    width: 2.5em;
+    height: 2.5em;
+    -webkit-animation-fill-mode: both;
+    animation-fill-mode: both;
+    -webkit-animation: load7 1.8s infinite ease-in-out;
+    animation: load7 1.8s infinite ease-in-out;
+  }
+  .loader {
+    color: #ffffff;
+    font-size: 10px;
+    margin: 80px auto;
+    position: relative;
+    text-indent: -9999em;
+    -webkit-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-animation-delay: -0.16s;
+    animation-delay: -0.16s;
+  }
+  .loader:before,
+  .loader:after {
+    content: '';
+    position: absolute;
+    top: 0;
+  }
+  .loader:before {
+    left: -3.5em;
+    -webkit-animation-delay: -0.32s;
+    animation-delay: -0.32s;
+  }
+  .loader:after {
+    left: 3.5em;
+  }
+  @-webkit-keyframes load7 {
+    0%,
+    80%,
+    100% {
+      box-shadow: 0 2.5em 0 -1.3em;
+    }
+    40% {
+      box-shadow: 0 2.5em 0 0;
+    }
+  }
+  @keyframes load7 {
+    0%,
+    80%,
+    100% {
+      box-shadow: 0 2.5em 0 -1.3em;
+    }
+    40% {
+      box-shadow: 0 2.5em 0 0;
+    }
+  }
+
+  .show{
+    visibility: visible;
+  }
+
+  .spinner, .overlay{
+    opacity: 0;
+    -webkit-transition: all 0.3s;
+    -moz-transition: all 0.3s;
+    transition: all 0.3s;
+  }
+
+  .spinner.show, .overlay.show {
+    opacity: 1
   }
 </style>
 
 <template>
   <div class="container">
-    <h2>Victorian COVID-19 Public Exposure Sites</h2>
+  
+    <div class="overlay" :class="{ show: !cacheInitialised }"></div>
+    <div class="spinner" :class="{ show: !cacheInitialised }">
+      <div class="loader"></div>
+      <p>Initialising, please wait</p>
+    </div>
+
+    <h1>Victorian COVID-19 Public Exposure Sites</h1>
     <div class="row">
       <div class="col-md-8">
-        <p><button class="btn btn-primary" :disabled="!cacheInitialised" @click="doLoadData">Load data <span v-show="!cacheInitialised">(please wait)</span></button></p>
+        <p>The details on this map are intentionally basic - if you see anything within an area that concerns you, please go to <a href="https://www.coronavirus.vic.gov.au/exposure-sites">https://www.coronavirus.vic.gov.au/exposure-sites</a> to view the full details including dates of the COVID-19 exposure sites.</p>
+        <p>If you see any issues with the data, please <a href="mailto:dev@awd.net.au">email me to let me know</a>. Some locations provided by the government are unfortunately not being "recognised" well by Google (which I am using for geocoding).  I can fix some of them manually if I am made aware of them.</p>
+        <p>In particular, there is a <strong>Tier 1 Site</strong> at <strong>Highland SC/Grand Bvd to Donnybrook Rd/Dwyer Street</strong> which can't be geocoded.  So please follow up on this at the above link if it is of concern to you.</p>
 
-        <p>For full details of COVID-19 exposure sites, go to <a href="https://www.coronavirus.vic.gov.au/exposure-sites">https://www.coronavirus.vic.gov.au/exposure-sites</a></p>
       </div>
-      <div class="col-md-4">
-        <p class="legend"><strong>Legend:</strong><br/>
+      <div class="col-md-4 legend">
+        <p><strong>Legend:</strong></p>
+        <p>
           <img src="https://maps.google.com/mapfiles/ms/icons/red-dot.png" /> Tier 1<br/>
           <img src="https://maps.google.com/mapfiles/ms/icons/blue-dot.png" /> Tier 2<br/>
           <img src="https://maps.google.com/mapfiles/ms/icons/green-dot.png" /> Tier 3
         </p>
+        <p><button class="btn btn-primary" :disabled="!cacheInitialised" @click="doLoadData">Refresh sites data</button></p>
       </div>
     </div>
-    <div id="map"></div>
+     <div class="row map-row">
+      <div class="col-12">
+        <div id="map"></div>
+      </div>
+    </div>
     <div class="row">
-      <div class="col-xs-12">
-        <div id="disclaimer">
-          <p>Created by Bron Thulke - code available on <a href="https://github.com/bronthulke/vic-exposure-sites">Github</a></p>
-          <p><strong>DISCLAIMER:</strong> The data presented in this website is not guaranteed to be accurate, and we take no responsibility for any decisions or outcomes that come about as a result of the use of this website.
-          <p>This project is a "passion project" by me, in order to allow me to visually see any nearby COVID-19 exposure sites in Melbourne.</p>
-          <p>The data may be out of date, and may become out-of-date as the government updates data on a regular basis.</p>
-        </div>
+      <div class="col-12">
+        <h5>DISCLAIMER</h5>
+        <p>The data presented in this website is not guaranteed to be accurate, and we take no responsibility for any decisions or outcomes that come about as a result of the use of this website.
+        <p>This project is a "passion project" by me, in order to allow me to visually see any nearby COVID-19 exposure sites in Melbourne.</p>
+        <p>The data may be out of date, and may become out-of-date as the government updates data on a regular basis.</p>
+        <p>Created by Bron Thulke - code available on <a href="https://github.com/bronthulke/vic-exposure-sites">Github</a></p>
       </div>
     </div>
   </div>
