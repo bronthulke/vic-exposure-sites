@@ -255,7 +255,8 @@ export default {
         <p>The details on this map are intentionally basic - if you see anything within an area that concerns you, please go to <a href="https://www.coronavirus.vic.gov.au/exposure-sites">https://www.coronavirus.vic.gov.au/exposure-sites</a> to view the full details including dates of the COVID-19 exposure sites.</p>
         <p>If you see any issues with the data, please <a href="mailto:dev@awd.net.au">email me to let me know</a>. Some locations provided by the government are unfortunately not being "recognised" well by Google (which I am using for geocoding).  I can fix some of them manually if I am made aware of them.</p>
         <p>In particular, there is a <strong>Tier 1 Site</strong> at <strong>Highland SC/Grand Bvd to Donnybrook Rd/Dwyer Street</strong> which can't be geocoded.  So please follow up on this at the above link if it is of concern to you.</p>
-
+        <br />
+        <p>Looking for my radius checker tool? It's at <a href="https://radius-checker.bronthulke.com.au/">Radius Checker</a>, and includes multiple radius mapping!</p>
       </div>
       <div class="col-md-4 legend">
         <p><strong>Legend:</strong></p>
