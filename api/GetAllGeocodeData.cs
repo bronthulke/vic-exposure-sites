@@ -8,36 +8,9 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
-using Newtonsoft.Json;
 
-namespace AWD.GetAllGeocodeData
+namespace AWD.VicExposureSites
 {
-    public class GeocodeDataItem
-    {
-        [JsonProperty("address")]
-        public string Address { get; set; }
-
-        [JsonProperty("title")]
-        public string Title { get; set;}
-
-        [JsonProperty("advice_title")]
-        public string AdviceTitle { get; set;}
-
-        [JsonProperty("location")]
-        public GeocodeDataLocationItem location { get; set; }
-
-    }
-
-    public class GeocodeDataLocationItem
-    {
-        [JsonProperty("lat")]
-        public string Lat { get; set; }
-
-        [JsonProperty("lng")]
-        public string Lng { get; set; }
-
-    }
-
     public static class GetAllGeocodeData
     {
         
@@ -46,7 +19,7 @@ namespace AWD.GetAllGeocodeData
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req,
             [CosmosDB(
                 databaseName: "geocodeDatabase",
-                collectionName: "geocodeCollection",
+                collectionName: "geocodeCollectionV2",
                 ConnectionStringSetting = "CosmosDBConnection",
                 SqlQuery = "SELECT * FROM c")] IEnumerable<GeocodeDataItem> geocodeData,
             ILogger log)
