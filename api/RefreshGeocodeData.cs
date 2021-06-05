@@ -27,8 +27,7 @@ namespace AWD.VicExposureSites
             _exposureData = exposureData;
 
             _googleAddressGeocodeRequest = new AddressGeocodeRequest();
-            _googleAddressGeocodeRequest.Key = "AIzaSyCjL7_Yq4nHc5bLoBhSrmhKXkGTnk0GUa4";        // todo: move this into the local settings
-
+            _googleAddressGeocodeRequest.Key = GetEnvironmentVariable("GoogleAPIKey");
         }
 
         [FunctionName("RefreshGeocodeData")]
@@ -46,6 +45,8 @@ namespace AWD.VicExposureSites
             ILogger log)
         {
             log.LogInformation("Request received to refresh geocode data");
+
+            log.LogInformation("Request API Key is " + _googleAddressGeocodeRequest.Key);
 
             var discoverDataRecords = await _exposureData.GetData();
 
@@ -123,6 +124,11 @@ namespace AWD.VicExposureSites
 
 
             return (ActionResult)new OkObjectResult(addressesProcessed); // returning the list of addresses processed
+        }
+
+        private static string GetEnvironmentVariable(string name)
+        {
+            return System.Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.Process);
         }
 
         private void ApplyManualUpdates(List<GeocodeDataItem> outputRecords, IEnumerable<GeocodeDataItem> geocodeDBData) 
