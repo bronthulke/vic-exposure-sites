@@ -60,7 +60,7 @@ namespace AWD.VicExposureSites
 
                 if(outputRecords.Any(a => a.address == address))
                 {
-                    Console.WriteLine($"Duplicate address in results (maybe deal with different times later by returning the marker text) [{address}]");
+                    log.LogInformation($"Duplicate address in results (maybe deal with different times later by returning the marker text) [{address}]");
                     continue;  // have already handled this exact address
                 }
 
@@ -97,12 +97,12 @@ namespace AWD.VicExposureSites
                             existingDBRecord.advice_title = adviceTitle;
                             existingDBRecord.added_date = addedDate;
                             outputRecords.Add(existingDBRecord);
-                            Console.WriteLine($"Updating existing record in DB for {address}");
+                            log.LogInformation($"Updating existing record in DB for {address}");
                         }
-                        Console.WriteLine($"Got geocode data from Google for {response.Results.FirstOrDefault().FormattedAddress} [{response.Results.FirstOrDefault().Geometry.Location.Latitude}, {response.Results.FirstOrDefault().Geometry.Location.Longitude}]");
+                        log.LogInformation($"Got geocode data from Google for {response.Results.FirstOrDefault().FormattedAddress} [{response.Results.FirstOrDefault().Geometry.Location.Latitude}, {response.Results.FirstOrDefault().Geometry.Location.Longitude}]");
                     }
                     else
-                        Console.WriteLine($"Failed to find an address for {address}");
+                        log.LogInformation($"Failed to find an address for {address}");
                 }
             }
            
