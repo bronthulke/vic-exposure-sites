@@ -46,8 +46,6 @@ namespace AWD.VicExposureSites
         {
             log.LogInformation("Request received to refresh geocode data");
 
-            log.LogInformation("Request API Key is " + _googleAddressGeocodeRequest.Key);
-
             var discoverDataRecords = await _exposureData.GetData();
 
             List<string> addressesProcessed = new List<string>();
