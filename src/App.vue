@@ -246,8 +246,14 @@ export default {
     opacity: 1
   }
 
+  .text-list {
+    padding: 0;
+  }
+
   .text-list li {
     border-bottom: 1px solid #ccc;
+    list-style-type: none;
+    padding: 8px 0;
   }
 </style>
 
