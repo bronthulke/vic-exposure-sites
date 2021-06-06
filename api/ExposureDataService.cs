@@ -49,7 +49,13 @@ namespace AWD.VicExposureSites
 
         [JsonPropertyName("Site_postcode")]
         public string SitePostcode { get; set;}
-        
+
+        [JsonPropertyName("Exposure_date_dtm")]
+        public DateTime ExposureDate { get;set;}
+
+        [JsonPropertyName("Exposure_time")]
+        public string ExposureTimeDetails { get;set;}
+
         [JsonPropertyName("Added_date_dtm")]
         public DateTime AddedDate { get; set;}
         // Other fields exist if needed
@@ -65,13 +71,13 @@ namespace AWD.VicExposureSites
         public string Next { get; set; }
     }
 
-    public class ExposureData : IExposureData
+    public class ExposureDataService : IExposureDataService
     {
         HttpClient _client;
         List<DiscoverDataRecord> _allRecords;
         private readonly string _exposureDataBaseURL = "https://discover.data.vic.gov.au";
 
-        public ExposureData(HttpClient client)
+        public ExposureDataService(HttpClient client)
         {
             _client = client;
             _allRecords = new List<DiscoverDataRecord>();

@@ -17,14 +17,14 @@ namespace AWD.VicExposureSites
 {
     public class RefreshGeocodeData
     {
-        public readonly IExposureData _exposureData;
+        public readonly IExposureDataService _exposureDataService;
         private readonly AddressGeocodeRequest _googleAddressGeocodeRequest;
 
 
 
-        public RefreshGeocodeData(IExposureData exposureData)
+        public RefreshGeocodeData(IExposureDataService exposureDataService)
         {
-            _exposureData = exposureData;
+            _exposureDataService = exposureDataService;
 
             _googleAddressGeocodeRequest = new AddressGeocodeRequest();
             _googleAddressGeocodeRequest.Key = GetEnvironmentVariable("GoogleAPIKey");
@@ -35,31 +35,73 @@ namespace AWD.VicExposureSites
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
             [CosmosDB(
                 databaseName: "geocodeDatabase",
-                collectionName: "geocodeCollectionV2",
+                collectionName: "geocodeCollectionV3",
                 ConnectionStringSetting = "CosmosDBConnection",
                 SqlQuery = "SELECT * FROM c")] IEnumerable<GeocodeDataItem> geocodeDBData,
             [CosmosDB(
                 databaseName: "geocodeDatabase",
-                collectionName: "geocodeCollectionV2",
+                collectionName: "geocodeCollectionV3",
                 ConnectionStringSetting = "CosmosDBConnection", CreateIfNotExists = true)] IAsyncCollector<object> geocodeDocument,
             ILogger log)
         {
             log.LogInformation("Request received to refresh geocode data");
 
-            var discoverDataRecords = await _exposureData.GetData();
+            var discoverDataRecords = await _exposureDataService.GetData();
 
             List<string> addressesProcessed = new List<string>();
             List<GeocodeDataItem> outputRecords = new List<GeocodeDataItem>();
+            List<string> failedAddresses = new List<string>();
 
-            foreach(var record in discoverDataRecords)
+            foreach(var ptRecord in discoverDataRecords.Where(d => d.Suburb == "Public Transport"
+                                                                || d.SiteTitle.StartsWith("PTV Bus Number")
+                                                                || d.SiteTitle.StartsWith("Metro Train")))
             {
-                string address = $"{record.SiteStreetAddress.Trim()}, {record.Suburb.Trim()}, {record.SiteState.Trim()}, AU";
+                var address = $"{ptRecord.SiteTitle}";
+                if(!string.IsNullOrEmpty(ptRecord.SiteStreetAddress))
+                    address += $" - {ptRecord.SiteStreetAddress.Trim()}";
+
+                var existingDBRecord = geocodeDBData.FirstOrDefault(d => 
+                    d.address == address && 
+                    d.exposure_date == ptRecord.ExposureDate &&  
+                    d.exposure_time_details == ptRecord.ExposureTimeDetails);
+                if(existingDBRecord == null)
+                {
+                    outputRecords.Add(new GeocodeDataItem
+                    {
+                        is_public_transport = true,
+                        address = address,
+                        added_date = ptRecord.AddedDate,
+                        title = ptRecord.SiteTitle,
+                        exposure_date = ptRecord.ExposureDate,
+                        exposure_time_details = ptRecord.ExposureTimeDetails,
+                        advice_title = ptRecord.AdviceTitle,
+                    }); 
+                }
+                else if(existingDBRecord.added_date < ptRecord.AddedDate)
+                {
+                    existingDBRecord.is_public_transport = true;
+                    existingDBRecord.added_date = ptRecord.AddedDate;
+                    existingDBRecord.title = ptRecord.SiteTitle;
+                    existingDBRecord.exposure_date = ptRecord.ExposureDate;
+                    existingDBRecord.exposure_time_details = ptRecord.ExposureTimeDetails;
+                    existingDBRecord.advice_title = ptRecord.AdviceTitle;
+
+                    outputRecords.Add(existingDBRecord);
+                    log.LogInformation($"Updating existing public transport record in DB for {address}");
+                }
+            }
+
+            foreach(var record in discoverDataRecords.Where(d => d.Suburb != "Public Transport" 
+                                                                && !d.SiteTitle.StartsWith("PTV Bus Number")
+                                                                && !string.IsNullOrEmpty(d.SiteStreetAddress)))
+            {
+                string address = $"{record.SiteStreetAddress.Trim()}, {record.Suburb?.Trim()}, {record.SiteState?.Trim()}, AU";
                 string title = record.SiteTitle;
                 string adviceTitle = record.AdviceTitle;
 
-                if(outputRecords.Any(a => a.address == address))
+                if(outputRecords.Any(a => a.address == address) || failedAddresses.Any(f => f == address))
                 {
-                    log.LogInformation($"Duplicate address in results (maybe deal with different times later by returning the marker text) [{address}]");
+                    log.LogInformation($"Duplicate address in results [{address}]");
                     continue;  // have already handled this exact address
                 }
 
@@ -101,20 +143,26 @@ namespace AWD.VicExposureSites
                         log.LogInformation($"Got geocode data from Google for {response.Results.FirstOrDefault().FormattedAddress} [{response.Results.FirstOrDefault().Geometry.Location.Latitude}, {response.Results.FirstOrDefault().Geometry.Location.Longitude}]");
                     }
                     else
+                    {
+                        failedAddresses.Add(address);
                         log.LogInformation($"Failed to find an address for {address}");
+                    }
                 }
             }
            
-            ApplyManualUpdates(outputRecords, geocodeDBData);
+            ApplyManualUpdates(outputRecords, geocodeDBData, log);
 
             foreach(var record in outputRecords)
             {
                 await geocodeDocument.AddAsync(new
                 {
+                    record.is_public_transport,
                     record.id,
                     record.address,
                     added_date = record.added_date,
                     record.title,
+                    record.exposure_date,
+                    record.exposure_time_details,
                     advice_title = record.advice_title,
                     record.location,
                 });
@@ -129,7 +177,7 @@ namespace AWD.VicExposureSites
             return System.Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.Process);
         }
 
-        private void ApplyManualUpdates(List<GeocodeDataItem> outputRecords, IEnumerable<GeocodeDataItem> geocodeDBData) 
+        private void ApplyManualUpdates(List<GeocodeDataItem> outputRecords, IEnumerable<GeocodeDataItem> geocodeDBData, ILogger log) 
         {
             // var contents = File.ReadAllText("ManualDataUpdates.json");
             // var manualUpdates = JsonSerializer.Deserialize<List<GeocodeDataItem>>(contents);
@@ -158,6 +206,9 @@ namespace AWD.VicExposureSites
                             existingDBRecord.added_date = update.added_date;
 
                         outputRecords.Add(existingDBRecord);
+                    }
+                    else{
+                        log.LogInformation($"Manual update record not found, skipping [{update.address}]");
                     }
                 }
                 else

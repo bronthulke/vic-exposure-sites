@@ -9,13 +9,11 @@ namespace AWD.VicExposureSites
    {      
     public override void Configure(IFunctionsHostBuilder builder)
       {
-         builder.Services.AddSingleton<IExposureData, ExposureData>();
+         builder.Services.AddTransient<IExposureDataService, ExposureDataService>();
          // or one of the options below
          // builder.Services.AddScoped<IRepository, Repository>();
-         // builder.Services.AddTransient<IRepository, Repository>();
+         // builder.Services.AddSingleton<IRepository, Repository>();
          builder.Services.AddLogging();
       }
-
-
    }
 }

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace AWD.VicExposureSites
 {
-    public interface IExposureData
+    public interface IExposureDataService
     {
         Task<List<DiscoverDataRecord>> GetData();
     }
