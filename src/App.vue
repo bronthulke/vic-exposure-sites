@@ -305,11 +305,11 @@ export default {
     </div>
 
     <h1>Victorian COVID-19 Public Exposure Sites</h1>
-    <div class="row">
+    <div class="row align-items-end">
       <div class="col-md-8">
         <p>The details on this map are intentionally basic - if you see anything within an area that concerns you, please go to <a href="https://www.coronavirus.vic.gov.au/exposure-sites">https://www.coronavirus.vic.gov.au/exposure-sites</a> to view the full details including dates of the COVID-19 exposure sites.</p>
-        <p>If you see any issues with the data, please <a href="mailto:dev@awd.net.au">email me to let me know</a>. Some locations provided by the government are unfortunately not being "recognised" well by Google (which I am using for geocoding).  I can fix some of them manually if I am made aware of them.</p>
         <p>See below the map for <a href="#ptdetails">Public Transport route details</a>, which have proven tricky to map accurately on the map at this stage.</p>
+        <p>If you see any issues with the data, please <a href="mailto:dev@awd.net.au">email me to let me know</a>.</p>
         <br />
         <p>Looking for my radius checker tool? It's at <a href="https://radius-checker.bronthulke.com.au/">Radius Checker</a>, and includes multiple radius mapping!</p>
       </div>
