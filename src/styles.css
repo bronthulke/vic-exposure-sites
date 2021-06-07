@@ -1,0 +1,32 @@
+body {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 14px;
+}
+
+h1, h2, h3, h4, h5 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: bold;
+}
+
+a {
+    color: #e76f51;
+
+}
+
+.btn-primary {
+    background-color: #f4a261!important;
+    border-color: #f4a261!important;
+}
+
+.btn-primary:hover {
+    color: #fff;
+    background-color: #f4a261;
+    border-color: #f4a261;
+    opacity: 0.7;
+}
+
+.btn-primary:not(:disabled):not(.disabled):active, .btn-primary:not(:disabled):not(.disabled).active, .show > .btn-primary.dropdown-toggle {
+    background-color: #f4a261;
+    border-color: #f4a261;
+    opacity: 0.8;
+}

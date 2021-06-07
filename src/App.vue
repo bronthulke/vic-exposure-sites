@@ -128,9 +128,47 @@ export default {
     margin: 30px 0 20px;
   }
 
-  .legend img {
-    margin-bottom: 5px;
+  .legend-items {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    margin-bottom: 10px;
   }
+
+    @media(max-width: 768px) {
+      .legend-items {
+        flex-direction: row;
+      }
+    }
+  
+    .legend-items .group {
+      display: flex;
+      flex-direction: row;
+      margin-bottom: 10px;
+    }
+
+      @media(max-width: 768px) {
+        .legend-items .group {
+          margin-bottom: 0;
+        }
+      }
+
+    .legend-items .btn {
+        margin-left: auto;
+        width: 100%;
+    }
+
+    @media(max-width: 767px) {
+      .legend-items .btn {
+        margin-left: auto;
+        width: auto;
+      }
+    }
+        
+    .legend-item .text {
+        margin-right: 20px;
+        white-space: nowrap;
+    }
 
   .map-row {
     margin-bottom: 20px;
@@ -259,13 +297,15 @@ export default {
         <p>Looking for my radius checker tool? It's at <a href="https://radius-checker.bronthulke.com.au/">Radius Checker</a>, and includes multiple radius mapping!</p>
       </div>
       <div class="col-md-4 legend">
-        <p><strong>Legend:</strong></p>
-        <p>
-          <img src="https://maps.google.com/mapfiles/ms/icons/red-dot.png" /> Tier 1<br/>
-          <img src="https://maps.google.com/mapfiles/ms/icons/blue-dot.png" /> Tier 2<br/>
-          <img src="https://maps.google.com/mapfiles/ms/icons/green-dot.png" /> Tier 3
-        </p>
-        <p><button class="btn btn-primary" :disabled="!cacheInitialised" @click="doMapDataLoad">Refresh sites data</button></p>
+        <h5><strong>Legend:</strong></h5>
+        <div class="legend-items">
+          <div class="group">
+            <div class="legend-item"><img src="https://maps.google.com/mapfiles/ms/icons/red-dot.png" /><span class="text">Tier 1</span></div>
+            <div class="legend-item"><img src="https://maps.google.com/mapfiles/ms/icons/blue-dot.png" /><span class="text">Tier 2</span></div>
+            <div class="legend-item"><img src="https://maps.google.com/mapfiles/ms/icons/green-dot.png" /><span class="text">Tier 3</span></div>
+          </div>
+          <button class="btn btn-primary" :disabled="!cacheInitialised" @click="doMapDataLoad">Refresh sites data</button>
+        </div>
       </div>
     </div>
      <div class="row map-row">
