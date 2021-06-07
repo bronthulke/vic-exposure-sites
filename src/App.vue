@@ -12,6 +12,7 @@ export default {
       oms: [],
       geocoder: null,
       localCache: [],
+      ptRecords: [],
     };
   },
   methods: {
@@ -27,22 +28,6 @@ export default {
         keepSpiderfied: true,
       });
 
-    },
-    callRefreshGeocodeData() {
-      const url = `/api/refreshgeocodedata/`;
-
-      const options = {
-        method: "POST",
-        cache: "no-cache",
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
-      };
-
-      return fetch(url, options)
-        .then(Utilities.handleAPIErrors)
-        .then(r =>  r.json().then(data => ({status: r.status, body: data})))
     },
     callGetAllGeocodeData() {
       const url = `/api/getallgeocodedata/`;
@@ -98,11 +83,36 @@ export default {
         this.oms.removeAllMarkers();
 
         this.localCache.forEach((record) => {
-          var latLng = { lat: Number(record.location.lat), lng: Number(record.location.lng)};
-            
-          this.addMarkerAndInfoWindow(record.address, record.title, record.advice_title, latLng);
+          if(record.location && !record.is_public_transport)
+          {
+            var latLng = { lat: Number(record.location.lat), lng: Number(record.location.lng)};
+              
+            this.addMarkerAndInfoWindow(record.address, record.title, record.advice_title, latLng);
+          }
         });
 
+        this.localCache.filter(r => r.is_public_transport).forEach((ptRecord) => {
+          this.ptRecords.push(ptRecord);
+        });
+
+        this.ptRecords.sort((a, b) => {
+          if(a.address > b.address)
+            return 1;
+          else if(a.address < b.address)
+            return -1;
+
+          if(new Date(a.exposure_date) > new Date(b.exposure_date))
+           return 1;
+          
+          return -1;
+        });
+    },
+    formatDateDMY(item) {
+      var date = new Date(item.exposure_date);
+      var d = date.getDate();
+      var m = date.getMonth() + 1; //Month from 0 to 11
+      var y = date.getFullYear();
+      return `${d}/${(m<=9 ? '0' + m : m) }/${y}`;
     },
   },
   mounted () {
@@ -110,10 +120,7 @@ export default {
     this.geocoder = new window.google.maps.Geocoder();
     this.initMap();
 
-    // this.callRefreshGeocodeData()
-    //   .then(() => {
-        this.callGetAllGeocodeData()
-      // })
+    this.callGetAllGeocodeData()
       .then(() => {
         this.doMapDataLoad()
       });
@@ -276,6 +283,16 @@ export default {
   .spinner.show, .overlay.show {
     opacity: 1
   }
+
+  .text-list {
+    padding: 0;
+  }
+
+  .text-list li {
+    border-bottom: 1px solid #ccc;
+    list-style-type: none;
+    padding: 8px 0;
+  }
 </style>
 
 <template>
@@ -292,7 +309,7 @@ export default {
       <div class="col-md-8">
         <p>The details on this map are intentionally basic - if you see anything within an area that concerns you, please go to <a href="https://www.coronavirus.vic.gov.au/exposure-sites">https://www.coronavirus.vic.gov.au/exposure-sites</a> to view the full details including dates of the COVID-19 exposure sites.</p>
         <p>If you see any issues with the data, please <a href="mailto:dev@awd.net.au">email me to let me know</a>. Some locations provided by the government are unfortunately not being "recognised" well by Google (which I am using for geocoding).  I can fix some of them manually if I am made aware of them.</p>
-        <p>In particular, there is a <strong>Tier 1 Site</strong> at <strong>Highland SC/Grand Bvd to Donnybrook Rd/Dwyer Street</strong> which can't be geocoded.  So please follow up on this at the above link if it is of concern to you.</p>
+        <p>See below the map for <a href="#ptdetails">Public Transport route details</a>, which have proven tricky to map accurately on the map at this stage.</p>
         <br />
         <p>Looking for my radius checker tool? It's at <a href="https://radius-checker.bronthulke.com.au/">Radius Checker</a>, and includes multiple radius mapping!</p>
       </div>
@@ -313,12 +330,27 @@ export default {
         <div id="map"></div>
       </div>
     </div>
+
+    <div class="row">
+      <div class="col-12">
+        <a name="ptdetails"></a>
+        <h5>PUBLIC TRANSPORT</h5>
+        <ul class="text-list">
+          <li v-for="item in ptRecords" :key="item.id">
+            <strong>{{ item.address }}</strong> {{ formatDateDMY(item) }} {{ item.exposure_time_details }}<br/>
+            {{ item.advice_title }}
+          </li>
+        </ul>
+
+      </div>
+    </div>
+
     <div class="row">
       <div class="col-12">
         <h5>DISCLAIMER</h5>
-        <p>The data presented in this website is not guaranteed to be accurate, and we take no responsibility for any decisions or outcomes that come about as a result of the use of this website.
+        <p>The data presented in this website is pulled from the <a href="https://discover.data.vic.gov.au/dataset/all-victorian-sars-cov-2-covid-19-current-exposure-sites" target="_blank">Victorian Government Data API</a>.</p>
         <p>This project is a "passion project" by me, in order to allow me to visually see any nearby COVID-19 exposure sites in Melbourne.</p>
-        <p>The data may be out of date, and may become out-of-date as the government updates data on a regular basis.</p>
+        <p>Although the data is updated on a regular basis, I provide no guarantees about the validity of the data at any point in time. I take no responsibility for any decisions or outcomes that come about as a result of the use of this website.</p>
         <p>Created by Bron Thulke - code available on <a href="https://github.com/bronthulke/vic-exposure-sites">Github</a></p>
       </div>
     </div>

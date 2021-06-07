@@ -19,7 +19,7 @@ namespace AWD.VicExposureSites
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req,
             [CosmosDB(
                 databaseName: "geocodeDatabase",
-                collectionName: "geocodeCollectionV2",
+                collectionName: "geocodeCollectionV3",
                 ConnectionStringSetting = "CosmosDBConnection",
                 SqlQuery = "SELECT * FROM c")] IEnumerable<GeocodeDataItem> geocodeData,
             ILogger log)

@@ -8,6 +8,7 @@ namespace AWD.VicExposureSites
     {
         [JsonPropertyName("id")]
         public string id { get; set; }
+        public bool is_public_transport { get; set;}
 
         [JsonPropertyName("address")]
         public string address { get; set; }
@@ -18,6 +19,12 @@ namespace AWD.VicExposureSites
         [JsonPropertyName("advice_title")]
         public string advice_title { get; set;}
 
+        [JsonPropertyName("exposure_date")]
+        public DateTime exposure_date { get; set;}
+        
+        [JsonPropertyName("exposure_time_details")]
+        public string exposure_time_details { get; set;}
+        
         [JsonPropertyName("added_date")]
         public DateTime added_date { get; set;}
 
