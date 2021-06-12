@@ -62,4 +62,3 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 
 ## Coming Soon
 - removing old/expired sites drop off the map (currently it just adds any new sites, it never deletes ones that have been removed)
-- move to server-side Google API for geocoding (important for initial data load, less important now the base set has been loaded)
