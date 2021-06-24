@@ -335,7 +335,10 @@ export default {
       <div class="col-12">
         <a name="ptdetails"></a>
         <h5>PUBLIC TRANSPORT</h5>
-        <ul class="text-list">
+        <p v-if="ptRecords.Length == 0">
+           No current listings
+        </p>
+        <ul v-else class="text-list">
           <li v-for="item in ptRecords" :key="item.id">
             <strong>{{ item.address }}</strong> {{ formatDateDMY(item) }} {{ item.exposure_time_details }}<br/>
             {{ item.advice_title }}
