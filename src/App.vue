@@ -335,8 +335,8 @@ export default {
       <div class="col-12">
         <a name="ptdetails"></a>
         <h5>PUBLIC TRANSPORT</h5>
-        <p v-if="ptRecords.Length == 0">
-           No current listings
+        <p v-if="ptRecords.length == 0">
+           No current public transport exposure sites.
         </p>
         <ul v-else class="text-list">
           <li v-for="item in ptRecords" :key="item.id">
