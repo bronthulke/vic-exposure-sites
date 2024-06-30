@@ -9,8 +9,7 @@ Vue.config.productionTip = false
 
 const appInsights = new ApplicationInsights({ 
   config: {
-    connectionString: "process.env.VUE_APP_APPINSIGHTS_CONNECTION_KEY"
-    /* …Other Configuration Options… */
+    connectionString: process.env.VUE_APP_APPINSIGHTS_CONNECTION_KEY
   }
 });
   
