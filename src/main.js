@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import App from './App.vue'
+import { ApplicationInsights } from '@microsoft/applicationinsights-web'
 
 import 'bootstrap/dist/css/bootstrap.css'
 import '@/styles.css'
